@@ -18,7 +18,7 @@ class movielens_dataloader:
         
         self.rating_cols = ["userId", 'movieId', 'rating', 'timestamp']
         self.items_cols = ["movieId", 'title', 'genres']
-        self.tags_cols = ["userId", 'movieId', 'tags', 'timestamp']
+        self.tags_cols = ["userId", 'movieId', 'tag', 'timestamp']
         pass
 
     def get_rating_data(self):
@@ -26,7 +26,7 @@ class movielens_dataloader:
             load rating dataframe
         """
         ratings = pd.read_csv(self.rating_path)
-        for col in self.ratiing_cols:
+        for col in self.rating_cols:
             if col in ratings.columns:
                 pass
             else:
@@ -58,7 +58,7 @@ class movielens_dataloader:
             else:
                 print("Not contatined column or different name. Column name : {}".format(col))
         print("shape of data : {}".format(tag.shape))
-        return
+        return tag
 
     def get_pivoting_dataframe(self):
         """
