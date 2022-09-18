@@ -24,7 +24,7 @@ def get_cosine_similarity(vector_arr = None, df = None):
     """
     if vector_arr:
         sim_result = np.dot(vector_arr[0], vector_arr[1]) / (np.linalg.norm(vector_arr[0],vector_arr[1]))
-    if df:
+    if df is not None:
         sim_result = cosine_similarity(df, df)
     return sim_result
 

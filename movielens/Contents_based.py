@@ -6,10 +6,11 @@ Using main function
     - save recommendation results for test set
     - extract recommendation score (rmse)
 """
+import os
 import pandas as pd
 import numpy as np
-import Utils as U
-from dataloader import movielens_dataloader
+import commons.Utils as U
+from commons.dataloader import movielens_dataloader
 from sklearn.feature_extraction.text import CountVectorizer
 
 def pre_process(item_df, tag_df):
@@ -50,14 +51,15 @@ def get_test_data(rating_df, last_n):
     train_df, test_df = U.split_train_test(rating_df, grouping = 'userId', time_order =last_n, seed_fix=True)
     return train_df, test_df
 
-def get_recommendation(user_row, item_num=3):
-    global item_df, gerne_item_sim
+def contents_based_recommender(user_row, item_df, gerne_item_sim, history_num=5, result_num = 3):
     """applied function for contents based recommendation
 
     Args:
-        user_row (array): user history (last N item) 
-        item_num (int, optional): number of considered histories. Defaults to 3.
+        user_row (array): user history (last N item)
+        history_num (int, optional) : number of considered histories. Defaults to 3.  
+        result_num (int, optional): number of results.
     """
+    
     def get_recommend_movie_list(movie_id, top=3):
         # movieId 의 item dataframe 에서의 index를 추출
         item_idx = item_df.loc[item_df['movieId']==movie_id, :].index[0]
@@ -71,44 +73,47 @@ def get_recommendation(user_row, item_num=3):
         return result
 
     recommendation_list = np.array([])
-    last_view_history = user_row[:item_num]
+    last_view_history = user_row[:history_num]
     for h in last_view_history:
-        print('last view history')
-        print(item_df.loc[item_df['movieId']==h, ['genres','title']].values)
         recommendation_list = np.concatenate((recommendation_list,get_recommend_movie_list(h)), axis=None)
 
-    recommendation_result = np.setdiff1d(recommendation_list, last_view_history)
-    print("====recommendation====")
-    print(item_df.loc[item_df['movieId'].isin(recommendation_result),['genres','title']].values)
+    recommendation_result = np.setdiff1d(recommendation_list, last_view_history)[:result_num]
     return recommendation_result
 
-def contents_based_recommender(similarilty_df, item_df):
+def get_prediction_result(train_df, item_df, gerne_item_sim):
     """contents based recommendation
        extract next item based last 5 items that haven't seen yet
 
     Args:
-        similarilty_df (dataframe): ordered item matrix by similarity
-        item_df (dataframe): item dataframe
+        train_df (dataframe): User rating dataframe (Train set)
 
     return:
-        recommendation result for test set
+        recommendation result dataframe (for comparing test set)
     """
-    
+    train_user_df = train_df.sort_values(by=['userId','timestamp'],ascending=False).groupby('userId')['movieId'].apply(list)
+    recommendation_result = train_user_df.apply(contents_based_recommender, item_df=item_df, gerne_item_sim=gerne_item_sim).reset_index()
+    user_smp = np.random.randint(1,50)
+    print(user_smp)
+    print("Sample user's last history")
+    user_history_item = train_user_df[user_smp][:5]
+    smp_result = recommendation_result.loc[recommendation_result['userId']==user_smp, 'movieId'].values[0]
+    print(item_df.loc[item_df['movieId'].isin(user_history_item), ['title','genres']])
+    print(smp_result)
+    print('=======recommendation result==========')
+    print(item_df.loc[item_df['movieId'].isin(smp_result), ['title','genres']])
 
-    
-    return
-
-def get_prediction_result():
-    
-    return
-
+    return recommendation_result
 
 def main():
     dataloader = movielens_dataloader() 
     item_df = dataloader.get_item_data()
-    
-    
-    return
+    rating_df = dataloader.get_rating_data()
+    tag_df = dataloader.get_tags_data()
+    gerne_item_sim = pre_process(item_df, tag_df)
+    train_df, test_df = get_test_data(rating_df, last_n=3)
+    recommendations = get_prediction_result(train_df, item_df, gerne_item_sim)
+    result_path = os.getcwd()+'/results/movielens_contents_based_results.pkl'
+    print(result_path)
+    recommendations.to_pickle(result_path)
 
-if __name__ == "__main__":
-    main()
+    return None
