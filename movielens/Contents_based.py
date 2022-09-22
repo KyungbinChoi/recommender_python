@@ -56,6 +56,8 @@ def contents_based_recommender(user_row, item_df, gerne_item_sim, history_num=5,
 
     Args:
         user_row (array): user history (last N item)
+        item_df (dataframe): rating dataframe
+        gerne_item_sim (dataframe) : ordered item matrix by similarity (item X item)
         history_num (int, optional) : number of considered histories. Defaults to 3.  
         result_num (int, optional): number of results.
     """
@@ -64,9 +66,10 @@ def contents_based_recommender(user_row, item_df, gerne_item_sim, history_num=5,
         # movieId 의 item dataframe 에서의 index를 추출
         item_idx = item_df.loc[item_df['movieId']==movie_id, :].index[0]
         # 해당 index 순서의 similar items list 를 산출
-        similar_items = np.delete(gerne_item_sim[item_idx, :], item_idx)
-
+        
         # 해당 list 에서 처음 뽑은 index 에 해당한 번호를 제외하고 나머지 앞쪽부터 N개 추출
+        similar_items = gerne_item_sim[item_idx, :]
+        similar_items = similar_items[similar_items != item_idx]
         filtered_idx = similar_items[:top]
         # filter된 list 에 해당하는 movie id 추출 
         result = item_df.iloc[filtered_idx, 0].values
@@ -76,7 +79,8 @@ def contents_based_recommender(user_row, item_df, gerne_item_sim, history_num=5,
     last_view_history = user_row[:history_num]
     for h in last_view_history:
         recommendation_list = np.concatenate((recommendation_list,get_recommend_movie_list(h)), axis=None)
-
+    
+    # 추천 목록 중 과거에 봤던 목록은 제거
     recommendation_result = np.setdiff1d(recommendation_list, last_view_history)[:result_num]
     return recommendation_result
 
