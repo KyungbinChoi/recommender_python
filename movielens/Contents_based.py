@@ -84,7 +84,7 @@ def contents_based_recommender(user_row, item_df, gerne_item_sim, history_num=5,
     recommendation_result = np.setdiff1d(recommendation_list, last_view_history)[:result_num]
     return recommendation_result
 
-def get_prediction_result(train_df, item_df, gerne_item_sim):
+def get_recommendation_result(train_df, item_df, gerne_item_sim):
     """contents based recommendation
        extract next item based last 5 items that haven't seen yet
 
@@ -109,15 +109,20 @@ def get_prediction_result(train_df, item_df, gerne_item_sim):
     return recommendation_result
 
 def main():
+    """
+    main function for execution
+    """
     dataloader = movielens_dataloader() 
     item_df = dataloader.get_item_data()
     rating_df = dataloader.get_rating_data()
     tag_df = dataloader.get_tags_data()
     gerne_item_sim = pre_process(item_df, tag_df)
     train_df, test_df = get_test_data(rating_df, last_n=3)
-    recommendations = get_prediction_result(train_df, item_df, gerne_item_sim)
+    recommendations = get_recommendation_result(train_df, item_df, gerne_item_sim)
+    test_history_df = test_df.sort_values(by=['userId','timestamp']).groupby('userId')['movieId'].apply(list)
+    recommendations_with_test = pd.merge(recommendations, test_history_df, on='userId', how='left')
     result_path = os.getcwd()+'/results/movielens_contents_based_results.pkl'
     print(result_path)
-    recommendations.to_pickle(result_path)
+    recommendations_with_test.to_pickle(result_path)
 
     return None
