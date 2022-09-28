@@ -42,54 +42,21 @@ def get_test_data(rating_df, last_n):
     return train_df, test_df
 
 def item_based_cf_recommender(user_row, similarity_df, history_num=5, result_num = 3):
-    """_summary_
-
-    Args:
-        user_row (array): item list in user's last n histroy
-        similarity_df (dataframe): similarity dataframe from train set
-        history_num (int, optional): number of user histories. Defaults to 5.
-        result_num (int, optional): number of final recommendation results. Defaults to 3.
-    Returns:
-            array: recommendation result array
     
-    """
-    def get_item_based_cf(movieId, item_num = 2):
-        """_summary_
+    return 
 
-        Args:
-            movieId (integer): item index number
-            item_num (int, optional):  similar item by one item(in user history). Defaults to 2.
-
-        Returns:
-            array: recommendation for one item
-        """
-        items =  similarity_df[movieId].sort_values(ascending=False).index.values
-        results = items[items != movieId][:item_num]
-        return results
-
-    recommendation_list = np.array([])
-    last_view_history = user_row[:history_num]
-    for h in last_view_history:
-        recommendation_list = np.concatenate((recommendation_list, get_item_based_cf(h)), axis=None)
+def user_based_cf_recommender(user_row, similarity_df, history_num=5, result_num = 3):
     
-    # 추천 목록 중 과거에 봤던 목록은 제거
-    recommendation_result = np.setdiff1d(recommendation_list, last_view_history)[:result_num]
-    return recommendation_result
+    return 
 
-def get_recommendation_result(train_df, item_df, similarity_df):
-    train_user_df = train_df.sort_values(by=['userId','timestamp'],ascending=False).groupby('userId')['movieId'].apply(list).reset_index()
-    train_user_df['recommendations'] = train_user_df['movieId'].apply(item_based_cf_recommender, similarity_df=similarity_df,history_num=5, result_num = 3)
-    user_smp = np.random.randint(1,50)
-    print(user_smp)
-    print("Sample user's last history")
-    user_history_item = train_user_df.loc[train_user_df['userId']==user_smp, 'movieId'].values[0][:5]
-    smp_result = train_user_df.loc[train_user_df['userId']==user_smp, 'recommendations'].values[0]
-    print(item_df.loc[item_df['movieId'].isin(user_history_item), ['title','genres']])
-    print(smp_result)
-    print('=======recommendation result==========')
-    print(item_df.loc[item_df['movieId'].isin(smp_result), ['title','genres']])
+def get_item_based_CF_result(train_df, item_df, similarity_df):
 
-    return train_user_df[['userId','recommendations']]
+    return 
+
+def get_user_based_CF_result(train_df, item_df, similarity_df):
+    
+    return 
+
 
 
 def main(cf_base = "item"):
@@ -102,7 +69,10 @@ def main(cf_base = "item"):
     rating_df = dataloader.get_rating_data()
     train_df, test_df = get_test_data(rating_df, last_n=3)
     similarity_df = pre_process(train_df, cf_base = 'item')
-    recommendations = get_recommendation_result(train_df, item_df, similarity_df)
+    if cf_base =="item":
+        recommendations = get_item_based_CF_result(train_df, item_df, similarity_df)
+    elif cf_base == "user":
+        recommendations = get_user_based_CF_result()
     test_history_df = test_df.sort_values(by=['userId','timestamp']).groupby('userId')['movieId'].apply(list)
     recommendations_with_test = pd.merge(recommendations, test_history_df, on='userId', how='left')
     result_path = os.getcwd()+'/results/movielens_'+'{}_CF'.format(cf_base)+'.pkl'
