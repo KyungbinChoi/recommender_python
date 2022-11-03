@@ -124,7 +124,7 @@ if __name__ == "__main__":
     if cf_base == "1": # item base cf
         print('Start recommendation for all users =============')
         pred_df = pd.DataFrame(train_df['userId'].unique(), columns=['userId'])
-        pred_df['rec_item_list'] = train_df['userId'].apply(get_item_based_CF_result)
+        pred_df['rec_item_list'] = pred_df['userId'].apply(get_item_based_CF_result)
         print('Finish recommendation for all users =============')
         result_path = os.getcwd()+'/results/movielens_'+'{}_CF'.format(cf_base)+'.pkl'
         print('Save recommendation results =============')

@@ -11,9 +11,9 @@ class movielens_dataloader:
         """
         setting constant terms & data path
         """
-        self.rating_path = "./movielens/data/ratings.csv"
-        self.item_path = "./movielens/data/movies.csv"
-        self.tags_path = "./movielens/data/tags.csv"
+        self.rating_path = "./data/ratings.csv"
+        self.item_path = "./data/movies.csv"
+        self.tags_path = "./data/tags.csv"
         
         self.rating_cols = ["userId", 'movieId', 'rating', 'timestamp']
         self.items_cols = ["movieId", 'title', 'genres']
