@@ -100,13 +100,45 @@ def get_item_based_CF_result(user_id, n_items=5, neighbor_size = 30):
     print(recommendations_title)
     return np.array(recom_movies.index)
 
-def user_based_cf_recommender(user_row, similarity_df, history_num=5, result_num = 3):
-    
-    return 
+def user_based_cf_recommender(user_id, movie_id, neighbor_size = 0):
+    if movie_id in rating_bias:
+        sim_scores = user_similarity[user_id].copy()
+        movie_ratings = rating_bias[movie_id].copy()
+        none_rating_idx = movie_ratings[movie_ratings.isnull()].index
+        movie_ratings = movie_ratings.drop(none_rating_idx)
+        sim_scores = sim_scores.drop(none_rating_idx)
 
-def get_user_based_CF_result(train_df, item_df, similarity_df):
-    
-    return 
+        if neighbor_size ==0:
+            prediction = np.dot(sim_scores, movie_ratings) / sim_scores.sum()
+            prediction += rating_mean[user_id]
+        else:
+            if len(sim_scores)> 1:
+                neighbor_size = min(neighbor_size, len(sim_scores))
+                sim_scores = np.array(sim_scores)
+                movie_ratings = np.array(movie_ratings)
+                user_idx = np.argsort(sim_scores)
+                sim_scores = sim_scores[user_idx][-neighbor_size:]
+                movie_ratings = movie_ratings[user_idx][-neighbor_size:]
+                prediction = np.dot(sim_scores, movie_ratings) / sim_scores.sum()
+                prediction += rating_mean[user_id]
+            else:
+                prediction = rating_mean[user_id]
+    else:
+        prediction = rating_mean[user_id]
+    return prediction
+
+def get_user_based_CF_result(user_id, n_items=5, neighbor_size = 30):
+    user_movie = user_item_matrix.loc[user_id].copy()
+    for movie in user_item_matrix:
+        if pd.notnull(user_movie.loc[movie]): # 해당 영화가 시청한 영화인 경우
+            user_movie.loc[movie] = 0
+        else:
+            user_movie.loc[movie] = user_based_cf_recommender(user_id, movie, neighbor_size)
+    movie_sort = user_movie.sort_values(ascending=False)[:n_items]
+    recom_movies = item_df.set_index('movieId').loc[movie_sort.index]
+    recommendations_title = recom_movies['title']
+    print(recommendations_title)
+    return np.array(recom_movies.index)
 
 
 if __name__ == "__main__":
@@ -121,7 +153,12 @@ if __name__ == "__main__":
     user_item_matrix = train_df.pivot_table(values='rating', index = 'userId', columns = 'movieId') 
     item_user_matrix = user_item_matrix.T
     item_similarity = pre_process(train_df, cf_base = 'item')
-    if cf_base == "1": # item base cf
+    user_similarity = pre_process(train_df, cf_base = 'user')    
+    
+    rating_mean = user_item_matrix.mean(axis=1) # average score by user
+    rating_bias = (user_item_matrix.T - rating_mean).T # mean centering
+
+    if cf_base == "item": # item base cf
         print('Start recommendation for all users =============')
         pred_df = pd.DataFrame(train_df['userId'].unique(), columns=['userId'])
         pred_df['rec_item_list'] = pred_df['userId'].apply(get_item_based_CF_result)
@@ -129,7 +166,15 @@ if __name__ == "__main__":
         result_path = os.getcwd()+'/results/movielens_'+'{}_CF'.format(cf_base)+'.pkl'
         print('Save recommendation results =============')
         pred_df.to_pickle(result_path)
-    else: # user based cf
-        pass
+    elif cf_base == "user": # user based cf
+        print('Start recommendation for all users =============')
+        pred_df = pd.DataFrame(train_df['userId'].unique(), columns=['userId'])
+        pred_df['rec_item_list'] = pred_df['userId'].apply(get_user_based_CF_result)
+        print('Finish recommendation for all users =============')
+        result_path = os.getcwd()+'/results/movielens_'+'{}_CF'.format(cf_base)+'.pkl'
+        print('Save recommendation results =============')
+        pred_df.to_pickle(result_path)
+    else:
+        print('Choose item base or user base Collaborative filtering')
 
     
