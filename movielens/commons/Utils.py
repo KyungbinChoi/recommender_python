@@ -8,11 +8,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics.pairwise import cosine_similarity
 
 def rmse():
-
+    # for optimizatio of params like grid-search
     return
 
 def mae():
+    # for optimizatio of params like grid-search
+    return
 
+def precision_at_k():
+
+    return
+
+def recall_at_k():
+    
+    return
+
+def ndcg():
+    
     return
 
 def get_cosine_similarity(vector_arr = None, df = None):
