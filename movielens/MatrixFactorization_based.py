@@ -1,3 +1,0 @@
-"""
-Matrix Factorization module
-"""
