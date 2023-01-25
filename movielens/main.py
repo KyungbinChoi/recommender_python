@@ -1,7 +1,7 @@
 import sys, json
 sys.path.append(sys.path[0]+'/utils/')
 from datetime import datetime
-from surprise import SVD
+from utils.ContentKNNAlgorithm import ContentKNNAlgorithm
 from surprise import NormalPredictor
 from utils.Evaluator import Evaluator
 from utils.MovieLens import MovieLens
@@ -26,9 +26,8 @@ random.seed(0)
 evaluator = Evaluator(evaluationData, rankings)
 
 ##### Add algorithms #####
-# Throw in an SVD recommender
-SVDAlgorithm = SVD(random_state=10)
-evaluator.AddAlgorithm(SVDAlgorithm, "SVD")
+contentKNN = ContentKNNAlgorithm(k=40, sim_options='genre')
+evaluator.AddAlgorithm(contentKNN, "ContentKNN")
 
 # Make random recommendations
 Random = NormalPredictor()
@@ -38,7 +37,7 @@ evaluator.AddAlgorithm(Random, "Random")
 result_dict = evaluator.Evaluate(True)
 
 ##### Save results as json file #####
-exp_name = "exp_rand_svd"
+exp_name = "exp_rand_contents"
 date = datetime.today().strftime(format='%Y%M%d%H%m%s')
 filename = './movielens/results/{}-{}.json'.format(exp_name, date)
 

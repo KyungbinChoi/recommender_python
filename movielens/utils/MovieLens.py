@@ -13,7 +13,8 @@ class MovieLens:
     name_to_movieID = {}
     ratingsPath = './movielens/data/ratings.csv'
     moviesPath = './movielens/data/movies.csv'
-    
+    vizfeaturePath = './movielens/data/LLVisualFeatures13K_Log.csv'
+
     def loadMovieLensLatestSmall(self):
 
         # Look for files relative to the directory we are running from
@@ -118,7 +119,7 @@ class MovieLens:
     
     def getMiseEnScene(self):
         mes = defaultdict(list)
-        with open("LLVisualFeatures13K_Log.csv", newline='') as csvfile:
+        with open(self.vizfeaturePath, newline='') as csvfile:
             mesReader = csv.reader(csvfile)
             next(mesReader)
             for row in mesReader:
