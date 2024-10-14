@@ -1,4 +1,16 @@
-# recommendation with python
-* Recommneder system 의 활용을 위한 모듈 구성해보기
-* dataset
-  * Movielens: https://grouplens.org/datasets/movielens/
+## Recommendation with python
+* Python 기반 추천 시스템 알고리즘 실습
+* Dataset
+  * Movielens : 100k, 1m
+* Contents
+  * Contents-based
+  * Collaborative filtering
+    * Nearest neighbor (Item / User)
+    * Model based (MF)
+    * Hybrid-methods
+  * Deep Learning Approach
+    * Auto-encoder
+    * Factorization Machine (FM)
+    * Neural Collaborative Filtering
+    * Wide & Deep Network
+    * DeepFM
